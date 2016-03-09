@@ -74,12 +74,13 @@ class RtmBot(object):
             logging.info(plugin)
             name = plugin.split('/')[-1][:-3]
 #            try:
-            self.bot_plugins.append(Plugin(name))
+            self.bot_plugins.append(Plugin(self, name))
 #            except:
 #                print "error loading plugin %s" % name
 
 class Plugin(object):
-    def __init__(self, name, plugin_config={}):
+    def __init__(self, bot, name, plugin_config={}):
+        self.bot = bot
         self.name = name
         self.jobs = []
         self.module = __import__(name)
@@ -103,14 +104,14 @@ class Plugin(object):
             #this makes the plugin fail with stack trace in debug mode
             if not debug:
                 try:
-                    eval("self.module."+function_name)(data)
+                    eval("self.module."+function_name)(self.bot, data)
                 except:
                     dbg("problem in module {} {}".format(function_name, data))
             else:
-                eval("self.module."+function_name)(data)
+                eval("self.module."+function_name)(self.bot, data)
         if "catch_all" in dir(self.module):
             try:
-                self.module.catch_all(data)
+                self.module.catch_all(self.bot, data)
             except:
                 dbg("problem in catch all")
     def do_jobs(self):
